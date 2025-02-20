@@ -1,21 +1,31 @@
 ﻿using DiaryApp.Data;
 using DiaryApp.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.General;
+using System.Security.Claims;
 
 namespace DiaryApp.Controllers
 {
+    [Authorize]
     public class DiaryEntriesController : Controller
     {
         private readonly DiaryDbContext _diaryDbContext;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DiaryEntriesController(DiaryDbContext diaryDbContext)
+        public DiaryEntriesController(DiaryDbContext diaryDbContext, UserManager<ApplicationUser> userManager)
         {
             _diaryDbContext = diaryDbContext;
+            _userManager = userManager;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<DiaryEntry> entries = _diaryDbContext.DiaryEntries.ToList();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge(); // Ensure user is logged in
 
+            var entries =   _diaryDbContext.DiaryEntries.ToList();
             return View(entries);
         }
 
@@ -25,14 +35,31 @@ namespace DiaryApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(DiaryEntry obj)
+        public async Task<IActionResult> Create(DiaryEntry obj)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            obj.UserId = int.Parse(userId);
+
+            var currentUser =await _userManager.GetUserAsync(User);
+
+            if (currentUser != null)
+            {
+                obj.UserAccount = currentUser.UserAccount;
+            }
+
+
             if (obj != null && obj.Title.Length < 3)
                 ModelState.AddModelError("Title", "Title too short");
 
             if (ModelState.IsValid)
             {
-                _diaryDbContext.DiaryEntries.Add(obj);
+                 _diaryDbContext.DiaryEntries.Add(obj);
                 _diaryDbContext.SaveChanges();
                 return RedirectToAction("Index");
             }

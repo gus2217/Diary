@@ -1,10 +1,25 @@
 using DiaryApp.Data;
+using DiaryApp.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<DiaryDbContext>()
+    .AddDefaultTokenProviders();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(
+    options =>
+    {
+        options.LoginPath = "/Account/Login";         // Redirect to login page
+        options.AccessDeniedPath = "/Account/Denied"; // Redirect for unauthorized access
+        options.ExpireTimeSpan = TimeSpan.FromDays(1); // Cookie expiry
+    });
+
+builder.Services.AddAuthorization();
 builder.Services.AddDbContext<DiaryDbContext>(options
     => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -22,6 +37,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

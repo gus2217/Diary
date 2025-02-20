@@ -16,5 +16,8 @@ namespace DiaryApp.Models
         public string Content { get; set; } = string.Empty;
         [Required]
         public DateTime Created { get; set; } = DateTime.Now;
+
+        public string? UserId { get; set; }
+        public virtual UserAccount UserAccount { get; set; }
     }
 }

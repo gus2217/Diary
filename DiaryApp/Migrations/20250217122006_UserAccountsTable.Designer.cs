@@ -4,6 +4,7 @@ using DiaryApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DiaryApp.Migrations
 {
     [DbContext(typeof(DiaryDbContext))]
-    partial class DiaryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250217122006_UserAccountsTable")]
+    partial class UserAccountsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,12 +45,7 @@ namespace DiaryApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("DiaryEntries");
                 });
@@ -94,22 +92,6 @@ namespace DiaryApp.Migrations
                         .IsUnique();
 
                     b.ToTable("UserAccounts");
-                });
-
-            modelBuilder.Entity("DiaryApp.Models.DiaryEntry", b =>
-                {
-                    b.HasOne("DiaryApp.Models.UserAccount", "UserAccount")
-                        .WithMany("DiaryEntries")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UserAccount");
-                });
-
-            modelBuilder.Entity("DiaryApp.Models.UserAccount", b =>
-                {
-                    b.Navigation("DiaryEntries");
                 });
 #pragma warning restore 612, 618
         }
